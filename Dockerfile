@@ -1,5 +1,5 @@
-FROM python:3-alpine
-MAINTAINER zveronline@zveronline.ru
+FROM python:3.6-alpine
+MAINTAINER peter.voronov@gmail.com
 
 ENV DB_USER=sopds \
     DB_NAME=sopds \
@@ -23,14 +23,14 @@ ADD requirements.txt /requirements.txt
 ADD configs/settings.py /settings.py
 ADD scripts/start.sh /start.sh
 #add fb2converter for epub and mobi - https://github.com/rupor-github/fb2converter
-ADD https://github.com/rupor-github/fb2converter/releases/latest/download/fb2c_linux_i386.zip /fb2c_linux_i386.zip
+ADD https://github.com/rupor-github/fb2converter/releases/download/v1.75.1/fb2c-linux-386.zip /fb2c-linux-386.zip.zip
 ADD scripts/fb2conv /fb2conv
 #
 #add autocreation of the superuser
 ADD scripts/superuser.exp /superuser.exp 
 #
 #incorporate all apk installation, compilation and execution of command in one branch
-RUN apk add --no-cache -U tzdata unzip build-base libxml2-dev libxslt-dev postgresql-dev libffi-dev libc-dev jpeg-dev zlib-dev \
+RUN apk add --no-cache -U tzdata unzip build-base libxml2-dev libxslt-dev postgresql13-dev libffi-dev libc-dev jpeg-dev zlib-dev \
 && cp /usr/share/zoneinfo/Europe/Moscow /etc/localtime \
 && echo "Europe/Moscow" > /etc/timezone \
 && unzip sopds.zip \
@@ -41,8 +41,8 @@ RUN apk add --no-cache -U tzdata unzip build-base libxml2-dev libxslt-dev postgr
 && cd /sopds \
 && pip3 install --upgrade pip setuptools 'psycopg2-binary>=2.8,<2.9' \
 && pip3 install --upgrade -r requirements.txt \
-&& unzip /fb2c_linux_i386.zip -d /sopds/convert/fb2c/  \
-&& rm /fb2c_linux_i386.zip \
+&& unzip /fb2c-linux-386.zip.zip -d /sopds/convert/fb2c/  \
+&& rm /fb2c-linux-386.zip.zip \
 && pip install toml-cli \
 && /sopds/convert/fb2c/fb2c export /sopds/convert/fb2c/ \
 && toml set --toml-path /sopds/convert/fb2c/configuration.toml logger.file.level none \
@@ -53,7 +53,7 @@ RUN apk add --no-cache -U tzdata unzip build-base libxml2-dev libxslt-dev postgr
 && mv /superuser.exp /sopds/superuser.exp \
 && apk del tzdata unzip build-base libxml2-dev libxslt-dev postgresql-dev libffi-dev libc-dev jpeg-dev zlib-dev \
 && rm -rf /root/.cache/ \
-&& apk add --no-cache -U bash libxml2 libxslt libffi libjpeg zlib postgresql expect \
+&& apk add --no-cache -U bash libxml2 libxslt libffi libjpeg zlib postgresql13 expect \
 && chmod +x /start.sh \
 && mkdir -p /sopds/tmp/ \
 && chmod ugo+w /sopds/tmp/ \
